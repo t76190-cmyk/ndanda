@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>んだんだ — 見つからないなら、さがせばいいじゃない</title>
+<meta name="description" content="まだ市場の言葉になっていない「やりたい・困った・できる」を、AIが翻訳して相手につなぐ。感情ロスを減らすマッチング『んだんだ』のトップページ（構想・プロトタイプ）。">
+<style>
+  :root{
+    --bg:#fdf6ec; --card:#fffdf8; --ink:#33302a; --sub:#8a8172;
+    --accent:#f39800; --accent-deep:#d97e00; --accent-soft:#fdeeda;
+    --teal:#2a9d8f; --teal-soft:#e3f2f0; --line:#ead9bd;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+    line-height:1.75;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 16px 72px}
+  /* ヒーロー */
+  .hero{padding:56px 8px 30px;text-align:center}
+  .logo{font-size:64px;font-weight:900;letter-spacing:.02em;line-height:1.15}
+  .logo .a{color:var(--accent)}
+  .proto-badge{display:inline-block;background:#33302a;color:#fff;font-size:12px;
+    padding:3px 12px;border-radius:999px;margin-top:10px}
+  .catch{font-size:clamp(24px,5.4vw,38px);font-weight:900;line-height:1.45;margin:26px 0 6px}
+  .catch .hl{color:var(--accent-deep)}
+  .lead{color:#5c5546;font-size:16.5px;max-width:640px;margin:14px auto 0}
+  .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .btn{display:inline-block;border:none;cursor:pointer;border-radius:999px;text-decoration:none;
+    padding:14px 32px;font-size:17px;font-weight:800;font-family:inherit}
+  .btn-main{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(217,126,0,.28)}
+  .btn-main:hover{background:var(--accent-deep)}
+  .btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .small{font-size:12.5px;color:var(--sub)}
+  /* セクション共通 */
+  h2.sec{font-size:23px;margin:52px 0 6px;border-left:7px solid var(--accent);padding-left:12px;line-height:1.4}
+  .sec-lead{color:#5c5546;font-size:15.5px;margin:6px 0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:0 2px 8px rgba(120,84,20,.06)}
+  /* 感情ロス */
+  .loss-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .loss{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .loss .scene{font-size:17px;font-weight:800}
+  .loss .arrow{color:var(--accent-deep);font-weight:900;margin:6px 0}
+  .loss p{margin:4px 0 0;font-size:14.5px;color:#5c5546}
+  .essence{margin-top:16px;background:var(--ink);color:#fff;border-radius:var(--radius);
+    padding:22px 20px;text-align:center}
+  .essence .big{font-size:clamp(22px,4.6vw,30px);font-weight:900}
+  .essence p{margin:8px 0 0;color:#e8e2d4;font-size:14.5px}
+  /* んだの実例 */
+  .nda-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .nda-ex{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .nda-ex .text{font-size:17.5px;font-weight:800;line-height:1.55}
+  .nda-ex .state{display:inline-block;margin-top:12px;font-size:13px;font-weight:700;
+    background:var(--teal-soft);color:#17695e;border-radius:999px;padding:3px 12px}
+  .nda-ex .note{font-size:13px;color:var(--sub);margin-top:8px}
+  /* 流れ */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 14px}
+  .step .num{display:inline-block;background:var(--accent);color:#fff;font-weight:900;
+    width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;font-size:15px}
+  .step .t{font-weight:800;margin-top:8px;font-size:15.5px}
+  .step p{margin:4px 0 0;font-size:13.5px;color:#5c5546}
+  /* 安心の設計 */
+  .safe-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .safe{background:var(--teal-soft);border:1px solid #bfe0da;border-radius:var(--radius);padding:18px}
+  .safe .t{font-weight:800;font-size:16px}
+  .safe p{margin:6px 0 0;font-size:14.5px;color:#39524c}
+  /* 語彙 */
+  .vocab{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .vocab div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .vocab .w{font-size:19px;font-weight:900;color:var(--accent-deep)}
+  .vocab p{margin:2px 0 0;font-size:13.5px;color:#5c5546}
+  /* 締め */
+  .closing{margin-top:56px;background:linear-gradient(160deg,#ffb84d,var(--accent));
+    border-radius:22px;padding:34px 22px;text-align:center;color:#fff}
+  .closing .big{font-size:clamp(22px,4.8vw,32px);font-weight:900;line-height:1.5}
+  .closing p{margin:10px 0 22px;font-size:15px}
+  .closing .btn{background:#fff;color:var(--accent-deep);box-shadow:none}
+  footer{margin-top:44px;font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ヒーロー -->
+  <section class="hero">
+    <div class="logo">ん<span class="a">だ</span>ん<span class="a">だ</span></div>
+    <div><span class="proto-badge">構想・仮説検証用プロトタイプ</span></div>
+    <div class="catch">見つからないなら、<br><span class="hl">さがせばいいじゃない。</span></div>
+    <p class="lead">相手がいないんじゃない。探し方がなかっただけ。<br>
+    まだ市場の言葉になっていない「やりたい・困った・できる」を、AIが翻訳して、相性のよい相手につなぐマッチングです。</p>
+    <div class="cta-row">
+      <a class="btn btn-main" href="index.html">プロトタイプを試す</a>
+      <a class="btn btn-ghost" href="#how">しくみを見る</a>
+    </div>
+    <p class="small" style="margin-top:14px">※ 18歳以上対象（入口で年齢確認があります）／ ただいま仮説検証中です</p>
+  </section>
+
+  <!-- 本質：感情ロス削減 -->
+  <h2 class="sec">なんのためのサービスか</h2>
+  <p class="sec-lead">釣れるのに、喜ばれない。作ったのに、余る。撮ったのに、見られない。<br>
+  能力や気持ちが余ってしまうところには、いつも小さな虚無感があります。</p>
+  <div class="loss-grid">
+    <div class="loss">
+      <div class="scene">魚は釣れる。でも、自分は食べない</div>
+      <div class="arrow">→</div>
+      <p>喜んで食べてくれる仲間がいたら、釣りはもっと楽しい。</p>
+    </div>
+    <div class="loss">
+      <div class="scene">料理は、たくさん作ったほうが美味い</div>
+      <div class="arrow">→</div>
+      <p>でも余ってしまう。みんなで食べるだけで、美味しくなるのに。</p>
+    </div>
+    <div class="loss">
+      <div class="scene">撮ったのに、見られない</div>
+      <div class="arrow">→</div>
+      <p>作ったのに、見せる相手がいない。作品にも、受け手がいる。</p>
+    </div>
+  </div>
+  <div class="essence">
+    <div class="big">んだんだの本質は「感情ロス削減」</div>
+    <p>余っている能力と、喜んでくれる受け手をつなぐ。それが、このサービスの仕事です。</p>
+  </div>
+
+  <!-- んだの実例 -->
+  <h2 class="sec">こんな「ンダ」が集まる場所</h2>
+  <p class="sec-lead">カテゴリや検索ワードにはならない。でも、需要は確かにある。<br>
+  そういう言葉にならない願いを、自由文のまま投げられます。</p>
+  <div class="nda-list">
+    <div class="nda-ex">
+      <div class="text">「銀杏を拾って埋めて、七輪で焼きに行ける人」</div>
+      <span class="state">仲間は1人見つかった…まだ募集</span>
+      <div class="note">多分たくさんおるけど、見つからんかっただけ。</div>
+    </div>
+    <div class="nda-ex">
+      <div class="text">「一緒にアジ釣りに行ける、主に食べてくれる人募集」</div>
+      <span class="state">仲間は1人見つかった…まだ募集</span>
+      <div class="note">釣りたい人と、食べたい人。向きが合えば、どっちも嬉しい。</div>
+    </div>
+    <div class="nda-ex">
+      <div class="text">「レトロな服を、作品っぽく撮ってほしい」</div>
+      <span class="state">仲間は1人見つかった…まだ募集</span>
+      <div class="note">細かい条件は、会う前に文章で残せるから安心。</div>
+    </div>
+  </div>
+  <p class="small" style="margin-top:10px">※ 実例はイメージです。ンダそのものが、匿名の口コミとして回っていく形を目指しています。</p>
+
+  <!-- しくみ -->
+  <h2 class="sec" id="how">しくみ</h2>
+  <p class="sec-lead">入口は自由に、出口は厳格に。投げるのは自由文だけです。</p>
+  <div class="steps">
+    <div class="step"><span class="num">1</span><div class="t">ンダを投げる</div>
+      <p>「やりたい・困った・できる」を、思いついたままの言葉で。</p></div>
+    <div class="step"><span class="num">2</span><div class="t">AIが翻訳する</div>
+      <p>意味・条件・安全性を構造化。公開前に自分で確認・修正できます。</p></div>
+    <div class="step"><span class="num">3</span><div class="t">相性が理由つきで出る</div>
+      <p>スコアと「なぜ合うのか」。キーワード一致だけでは拾えない相手も浮上します。</p></div>
+    <div class="step"><span class="num">4</span><div class="t">んだ → んだんだ</div>
+      <p>お互いに「んだ」を押したら、マッチ成立候補。ここまでは全員が匿名です。</p></div>
+    <div class="step"><span class="num">5</span><div class="t">条件をすり合わせる</div>
+      <p>双方の要望を確認し、合意したら「合意メモ」が双方に残ります。</p></div>
+    <div class="step"><span class="num">6</span><div class="t">段階的に開示する</div>
+      <p>合意のあと、必要ならNDAを共有して、名前→連絡先の順に開示します。</p></div>
+  </div>
+
+  <!-- 安心の設計 -->
+  <h2 class="sec">安心の設計</h2>
+  <div class="safe-grid">
+    <div class="safe"><div class="t">匿名で始められる</div>
+      <p>広場では全員が匿名。見えるのはンダの本文と条件だけです。</p></div>
+    <div class="safe"><div class="t">匿名のまま断れる</div>
+      <p>条件が合わなければ、素性を一切出さずに見送れます。断っても、傷は浅く済みます。</p></div>
+    <div class="safe"><div class="t">合意メモが残る</div>
+      <p>「言った・言わない」になりやすい細かい条件も、事前に文章で確認し、双方に残ります。</p></div>
+    <div class="safe"><div class="t">本人確認は、繋がる段階で</div>
+      <p>入口は自己申告の年齢確認（18歳以上）。本人確認は、実際に相手と繋がる手前で強める二段構えです。</p></div>
+  </div>
+
+  <!-- 語彙 -->
+  <h2 class="sec">ことば</h2>
+  <div class="vocab">
+    <div><span class="w">ンダ</span><p>1件の投稿。「やりたい・困った・できる」の自由文。</p></div>
+    <div><span class="w">んだ</span><p>興味・共感の意思表示。</p></div>
+    <div><span class="w">んだんだ</span><p>双方が「んだ」を押して、マッチ成立候補になった状態。</p></div>
+    <div><span class="w">成立ンダ</span><p>条件まで合意し、合意メモが残った状態。</p></div>
+  </div>
+
+  <!-- 締め -->
+  <section class="closing">
+    <div class="big">あなたの「ンダ」は、<br>誰かの「待ってた」かもしれない。</div>
+    <p>まずはプロトタイプで、投げるところから試せます。</p>
+    <a class="btn" href="index.html">プロトタイプを試す</a>
+  </section>
+
+  <footer>
+    んだんだ — 仮説検証用プロトタイプのトップページです。完成品ではありません。<br>
+    ブランド名・語彙は商標・ドメイン調査前の仮置きです。料金・有料化は未決定（要望が増えた部分から、一部有料化を構想中）。
+  </footer>
+</div>
+</body>
+</html>
