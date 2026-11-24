@@ -391,7 +391,8 @@ function compatibility(a, b){
    状態とテストデータ
    ============================================================ */
 let posts = [];       // {id, ...analyze結果}
-let myId = null;      // 自分のンダのid
+let myId = null;      // いま見ている自分のンダのid
+let myIds = new Set(); // 自分が投稿したンダのid（複数可）
 let ndaEdges = new Set(); // "fromId>toId"
 let seq = 0;
 
@@ -488,19 +489,54 @@ function renderGrid(){
       '<div class="tags">' + tagHtml(p) + "</div>" +
       '<div class="nda-meta">ンダ ' + esc(p.id) + " ／ " + esc(p.intentWhy) + "</div>" +
       '<div class="nda-foot">' + foot +
+      (myIds.has(p.id) ? '<button class="btn btn-ghost" data-del="' + p.id + '">削除</button>' : "") +
       (isMine ? "" : '<button class="btn btn-ghost" data-mine="' + p.id + '">このンダとして使う</button>') +
       "</div></div>";
   }).join("");
+  document.querySelectorAll("#ndaGrid [data-del]").forEach(b => b.addEventListener("click", () => deletePost(b.dataset.del)));
   document.querySelectorAll("[data-nda]").forEach(b => b.addEventListener("click", () => toggleNda(b.dataset.nda)));
   document.querySelectorAll("[data-mine]").forEach(b => b.addEventListener("click", () => { myId = b.dataset.mine; renderAll(); }));
   document.querySelectorAll("[data-room]").forEach(b => b.addEventListener("click", () => $("roomSec").scrollIntoView({ behavior:"smooth" })));
 }
 
+function deletePost(id){
+  if (!confirm("このンダを削除しますか？（マッチや部屋の状態も一緒に消えます）")) return;
+  posts = posts.filter(p => p.id !== id);
+  [...ndaEdges].forEach(e => { const [a, b] = e.split(">"); if (a === id || b === id) ndaEdges.delete(e); });
+  Object.keys(pairState).forEach(k => { if (k.split("|").includes(id)) delete pairState[k]; });
+  myIds.delete(id);
+  if (myId === id){
+    const rest = posts.find(p => myIds.has(p.id));
+    myId = rest ? rest.id : null;
+  }
+  renderAll();
+}
+
 function renderWhoami(){
+  const mine = posts.filter(p => myIds.has(p.id));
   const me = posts.find(p => p.id === myId);
-  $("whoami").innerHTML = me
-    ? "あなたは <b>" + esc(me.text) + "</b>（ンダ " + esc(me.id) + "）として見ています。"
-    : "まだ選ばれていません。下の一覧で「このンダとして使う」を押すか、新しくンダを投げると自動であなたのンダになります。";
+  if (mine.length){
+    let h = "あなたのンダ（" + mine.length + "件）";
+    mine.forEach(p => {
+      const active = p.id === myId;
+      h += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)">' +
+        (active ? '<span class="nda-state hot">● 見ています</span> ' : "") +
+        "<b>" + esc(p.text) + "</b>（ンダ " + esc(p.id) + "）" +
+        '<span style="float:right">' +
+        (active ? "" : '<button class="btn btn-ghost" data-switch="' + p.id + '">これで見る</button> ') +
+        '<button class="btn btn-ghost" data-del="' + p.id + '">削除</button></span></div>';
+    });
+    if (me && !myIds.has(me.id)){
+      h += '<div style="margin-top:8px">いま見ているのは <b>' + esc(me.text) + "</b>（ンダ " + esc(me.id) + "）です。</div>";
+    }
+    $("whoami").innerHTML = h;
+  } else {
+    $("whoami").innerHTML = me
+      ? "あなたは <b>" + esc(me.text) + "</b>（ンダ " + esc(me.id) + "）として見ています。"
+      : "まだ選ばれていません。下の一覧で「このンダとして使う」を押すか、新しくンダを投げると自動であなたのンダになります。";
+  }
+  document.querySelectorAll("[data-switch]").forEach(b => b.addEventListener("click", () => { myId = b.dataset.switch; renderAll(); }));
+  document.querySelectorAll("#whoami [data-del]").forEach(b => b.addEventListener("click", () => deletePost(b.dataset.del)));
 }
 
 function renderMatches(){
@@ -768,6 +804,7 @@ $("publishBtn").addEventListener("click", () => {
   draft.id = "N" + seq;
   posts.unshift(draft);
   myId = draft.id;
+  myIds.add(draft.id);
   draft = null;
   $("ndaText").value = ""; $("ndaBudget").value = ""; $("ndaDeadline").value = "";
   $("confirmBox").classList.add("hidden");
