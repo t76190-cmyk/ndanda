@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>んだんだ — 仮説検証用プロトタイプ</title>
+<style>
+  :root{
+    --bg:#fdf6ec; --card:#fffdf8; --ink:#33302a; --sub:#8a8172;
+    --accent:#f39800; --accent-deep:#d97e00; --accent-soft:#fdeeda;
+    --teal:#2a9d8f; --line:#ead9bd; --danger:#d64545;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+    line-height:1.6;}
+  .wrap{max-width:880px;margin:0 auto;padding:20px 16px 64px}
+  header.top{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:8px 0 4px}
+  .logo{font-size:40px;font-weight:900;letter-spacing:.02em;color:var(--ink)}
+  .logo .a{color:var(--accent)}
+  .tagline{color:var(--sub);font-size:14px;padding-bottom:8px}
+  .proto-badge{display:inline-block;background:#33302a;color:#fff;font-size:12px;
+    padding:3px 10px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  .proto-note{background:#fff3d6;border:1px dashed var(--accent);border-radius:12px;
+    padding:10px 14px;font-size:13px;margin:14px 0 22px}
+  h2.sec{font-size:20px;margin:30px 0 10px;border-left:6px solid var(--accent);padding-left:10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;box-shadow:0 2px 8px rgba(120,84,20,.06)}
+  textarea,input[type=text],select{width:100%;border:1.5px solid var(--line);border-radius:10px;
+    padding:10px 12px;font-size:16px;background:#fff;font-family:inherit;color:var(--ink)}
+  textarea{min-height:76px;resize:vertical}
+  textarea:focus,input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:160px}
+  label.flabel{font-size:13px;color:var(--sub);display:block;margin:10px 0 4px}
+  .btn{display:inline-block;border:none;cursor:pointer;border-radius:999px;
+    padding:12px 26px;font-size:16px;font-weight:700;font-family:inherit}
+  .btn-main{background:var(--accent);color:#fff}
+  .btn-main:hover{background:var(--accent-deep)}
+  .btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink);padding:8px 18px;font-size:14px}
+  .btn-nda{background:#fff;border:2px solid var(--accent);color:var(--accent-deep);
+    font-size:17px;padding:8px 22px}
+  .btn-nda.done{background:var(--accent);color:#fff}
+  .btn-nda:disabled{opacity:.45;cursor:default}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:13px;background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:4px 12px;cursor:pointer;color:var(--sub)}
+  .chip:hover{border-color:var(--accent);color:var(--accent-deep)}
+  /* 構造化タグ */
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .tag{font-size:12px;border-radius:999px;padding:2px 10px;background:var(--accent-soft);color:#8a5a00}
+  .tag.domain{background:#e3f2f0;color:#17695e}
+  .tag.skill{background:#e8eafd;color:#3c4396}
+  .tag.theme{background:#fde8f1;color:#96355e}
+  .tag.mood{background:#efe7fb;color:#5f4396}
+  .tag.warn{background:#fdeaea;color:var(--danger)}
+  .tag.plain{background:#f1ede4;color:var(--sub)}
+  /* ンダ一覧 */
+  .nda-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .nda-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;
+    display:flex;flex-direction:column;gap:8px}
+  .nda-card.mine{border:2px solid var(--accent)}
+  .nda-card.matched{border:2px solid var(--teal);background:#f4fbf9}
+  .nda-text{font-size:17px;font-weight:600}
+  .nda-meta{font-size:12px;color:var(--sub)}
+  .nda-foot{margin-top:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .nda-state{font-size:13px;color:var(--sub)}
+  .nda-state.hot{color:var(--teal);font-weight:700}
+  .ndanda-banner{background:var(--teal);color:#fff;border-radius:10px;padding:8px 12px;
+    font-weight:800;text-align:center;font-size:16px}
+  /* 構造化確認 */
+  .struct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:8px}
+  .struct-grid label.flabel{margin-top:0}
+  .struct-raw{font-size:15px;background:var(--accent-soft);border-radius:10px;padding:10px 14px}
+  /* 相性リスト */
+  .match-row{display:flex;gap:14px;align-items:flex-start;background:var(--card);
+    border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px}
+  .score{flex:0 0 74px;text-align:center}
+  .score .num{font-size:30px;font-weight:900;color:var(--accent-deep);line-height:1}
+  .score .lbl{font-size:11px;color:var(--sub)}
+  .bar{height:8px;background:#f1e7d2;border-radius:99px;margin-top:6px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ffb84d)}
+  .match-body{flex:1}
+  .match-pair{font-weight:700;font-size:15px}
+  .match-reasons{font-size:13.5px;color:#5c5546;margin-top:2px}
+  .small{font-size:12.5px;color:var(--sub)}
+  .hidden{display:none}
+  .tag.lock{background:#33302a;color:#fff}
+  /* つながりの部屋（段階開示） */
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  .step{flex:1;min-width:120px;text-align:center;font-size:12.5px;padding:8px 6px;border-radius:10px;
+    background:#f1ede4;color:var(--sub);border:1px solid var(--line)}
+  .step.now{background:var(--accent-soft);color:#8a5a00;border-color:var(--accent);font-weight:700}
+  .step.done{background:#e3f2f0;color:#17695e;border-color:var(--teal);font-weight:700}
+  .pair-card{background:var(--card);border:2px solid var(--teal);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+  .pair-head{font-weight:800;font-size:16px}
+  table.cond{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+  table.cond th,table.cond td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+  table.cond th{background:#faf3e3;font-weight:700}
+  .judge{font-size:11.5px;border-radius:999px;padding:1px 8px;background:#e3f2f0;color:#17695e;white-space:nowrap}
+  .judge.diff{background:#fdeeda;color:#8a5a00}
+  .agree-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .lock-box{background:#f7f3ea;border:1px dashed var(--sub);border-radius:12px;padding:12px 14px;font-size:14px;margin-top:12px}
+  .nda-box{background:#fff3d6;border:1.5px solid var(--accent);border-radius:12px;padding:12px 14px;font-size:14px;margin-top:12px}
+  .profile-box{background:#f4fbf9;border:1.5px solid var(--teal);border-radius:12px;padding:12px 14px;margin-top:12px}
+  .masked{color:var(--sub);letter-spacing:.05em}
+  .memo-box{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:14px 16px;margin-top:12px}
+  .wish-box{background:#eaf2fb;border:1.5px solid #4a7dbb;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:12px}
+  .pair-card.ended{border-color:var(--line);background:#f7f3ea}
+  .ended-banner{background:#8a8172;color:#fff;border-radius:10px;padding:8px 12px;
+    font-weight:800;text-align:center;font-size:16px}
+  /* 年齢確認ゲート */
+  .agegate{position:fixed;inset:0;z-index:100;background:rgba(51,48,42,.55);
+    display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 16px}
+  .agegate.hidden{display:none}
+  .agegate-card{background:var(--card);border:1px solid var(--line);border-radius:20px;
+    max-width:520px;width:100%;padding:28px 26px;box-shadow:0 12px 40px rgba(51,48,42,.3)}
+  .agegate-card h1{font-size:22px;margin:14px 0 8px}
+  .agegate-check{display:flex;gap:10px;align-items:flex-start;background:var(--accent-soft);
+    border:1.5px solid var(--accent);border-radius:12px;padding:14px;margin:16px 0;cursor:pointer}
+  .agegate-check input{width:22px;height:22px;margin-top:2px;accent-color:var(--accent-deep);flex:0 0 auto}
+  .agegate-check span{font-size:16px;font-weight:700}
+  .btn-enter{width:100%;padding:14px;font-size:17px}
+  .btn-enter:disabled{opacity:.45;cursor:default}
+  .btn-enter:disabled:hover{background:var(--accent)}
+  .agegate-under{display:block;margin:14px auto 0;background:none;border:none;cursor:pointer;
+    color:var(--sub);font-size:13.5px;text-decoration:underline;font-family:inherit}
+  .agegate-deny{background:#fdeaea;border:1.5px solid var(--danger);border-radius:12px;
+    padding:14px;font-size:14.5px;margin-top:16px}
+  body.gate-locked{overflow:hidden}
+  footer{margin-top:44px;font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);padding-top:14px}
+  .whoami{font-size:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+</style>
+</head>
+<body>
+
+  <!-- 年齢確認ゲート -->
+  <div class="agegate" id="ageGate">
+    <div class="agegate-card">
+      <div class="logo" style="font-size:32px">ん<span class="a">だ</span>ん<span class="a">だ</span></div>
+      <div><span class="proto-badge">仮説検証用プロトタイプ</span></div>
+      <h1>年齢確認</h1>
+      <p>「んだんだ」は、<b>18歳以上の方を対象</b>としたサービスです。<br>
+      <b>18歳未満の方はご利用いただけません。</b></p>
+      <label class="agegate-check">
+        <input type="checkbox" id="ageCheck">
+        <span>私は18歳以上です</span>
+      </label>
+      <button class="btn btn-main btn-enter" id="ageEnterBtn" disabled>確認してはじめる</button>
+      <button class="agegate-under" id="ageUnderBtn">18歳未満です</button>
+      <div class="agegate-deny hidden" id="ageDeny">
+        申し訳ありません。18歳未満の方は、このサービスをご利用いただけません。
+      </div>
+      <p class="small" style="margin-top:18px">
+        ※ ここでの確認は自己申告によるものです。本人確認（身分証などによる確認）は、実際に相手と繋がる段階（段階開示の手前）で、別途行う設計です。<br>
+        ※ 仮説検証用プロトタイプのため、この確認結果はどこにも送信・保存されません（開いている間だけ、この画面の中で保持されます）。
+      </p>
+    </div>
+  </div>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">ん<span class="a">だ</span>ん<span class="a">だ</span></div>
+    <div class="tagline">まだ市場の言葉になっていない「やりたい・困った・できる」を、AIが翻訳して相手につなぐ。</div>
+  </header>
+  <div><span class="proto-badge">仮説検証用プロトタイプ</span><span class="small">完成品ではありません。「変な自然文を投げたら、思わぬ相手とちゃんとつながるか」を試すための試作品です。</span></div>
+
+  <div class="proto-note">
+    遊び方：① 下の箱に自由文で「ンダ」を投げる → ② AIが構造化した候補を確認・修正する → ③ 相性のよい相手が理由つきで出る → ④ お互いに「んだ」を押すと <b>んだんだ</b>（マッチ成立候補）になる → ⑤ 「つながりの部屋」で条件をすり合わせ、双方が合意すると <b>成立ンダ</b>（合意メモが生成されます）。最後に相手の要望を確認し、秘密候補のンダはその上でNDAを共有してから、名前と連絡先が段階的に開示されます。<br>
+    この広場では全員が<b>匿名</b>です。見えるのはンダの本文と条件だけで、名前・連絡先は成立ンダになるまで相手にも見えません。
+  </div>
+
+  <!-- 投稿 -->
+  <h2 class="sec">ンダを投げる</h2>
+  <div class="card">
+    <label class="flabel" for="ndaText">なにしたいンダ？（自由文でOK）</label>
+    <textarea id="ndaText" placeholder="例：1ヶ月で村のPRええ感じにしたい"></textarea>
+    <div class="row">
+      <div>
+        <label class="flabel" for="ndaBudget">予算（任意）</label>
+        <input type="text" id="ndaBudget" placeholder="例：5万円 / 応相談">
+      </div>
+      <div>
+        <label class="flabel" for="ndaDeadline">期限（任意）</label>
+        <input type="text" id="ndaDeadline" placeholder="例：1ヶ月 / 急ぎ">
+      </div>
+    </div>
+    <div class="chips" id="sampleChips"></div>
+    <div style="margin-top:16px">
+      <button class="btn btn-main" id="postBtn">ンダを投げる</button>
+    </div>
+  </div>
+
+  <!-- 構造化確認 -->
+  <div id="confirmBox" class="hidden">
+    <h2 class="sec">AIがこう読みました（確認・修正できます）</h2>
+    <div class="card">
+      <div class="struct-raw" id="confirmRaw"></div>
+      <p class="small">構造化は確定情報ではなく候補です。違うところは直してから公開してください。</p>
+      <div class="struct-grid" id="structForm"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-main" id="publishBtn">この内容で公開する</button>
+        <button class="btn btn-ghost" id="cancelBtn">やめる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- あなたのンダ -->
+  <h2 class="sec">あなたのンダ</h2>
+  <div class="whoami" id="whoami">まだ選ばれていません。下の一覧で「このンダとして使う」を押すか、新しくンダを投げると自動であなたのンダになります。</div>
+
+  <!-- 相性候補 -->
+  <h2 class="sec">相性のよい相手</h2>
+  <div id="matchList"><p class="small">あなたのンダを選ぶと、相手との相性スコアと「なぜ合うのか」を表示します。</p></div>
+
+  <!-- つながりの部屋：段階開示 -->
+  <h2 class="sec" id="roomSec">つながりの部屋（んだんだ成立後の流れ）</h2>
+  <p class="small">「んだんだ」は、つながり<b>始めた</b>合図です。ここから先は、①条件のすり合わせ → ②双方が合意して<b>成立ンダ</b>（合意メモが自動生成されます） → ③最後に<b>相手の要望を確認</b>し、その上で（秘密候補のペアは）NDAを共有 → ④情報の段階開示、の順に進みます。匿名のまま条件だけを見て判断し、条件が合った人とだけ、ちゃんとつながる——そのための部屋です。条件が合わなければ、<b>匿名のまま見送る</b>こともできます（名前も連絡先も伝わらないので、傷は浅く済みます）。開示される情報はすべてダミーデータです。</p>
+  <div id="roomList"><p class="small">まだ「んだんだ」になった相手はいません。</p></div>
+
+  <!-- 一覧 -->
+  <h2 class="sec">いま出ているンダ</h2>
+  <div class="nda-grid" id="ndaGrid"></div>
+
+  <footer>
+    んだんだ 仮説検証用プロトタイプ ／ 構造化と相性判定はプロトタイプ用のローカルロジックで動いています（外部AI・個人情報は使っていません）。<br>
+    語彙：ンダ＝1件の投稿 ／ んだ＝興味・共感の意思表示 ／ んだんだ＝双方が「んだ」でマッチ成立候補 ／ 成立ンダ＝条件まで合意した状態。<br>
+    対象年齢：18歳以上（入口では自己申告による年齢確認を行い、本人確認は繋がる段階で別途行う設計）。
+    <a href="#" id="ageResetLink">（テスト用：年齢確認をやり直す）</a>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   んだんだ プロトタイプ：ローカル構造化＆相性判定ロジック
+   ============================================================ */
+
+// ---- 辞書 ----
+const THEME_RULES = [
+  { re:/ラーメン|らーめん|拉麺/, tag:"ラーメン" },
+  { re:/食べ放題|大食い/, tag:"食べ放題・大食い" },
+  { re:/カブトムシ|クワガタ|昆虫/, tag:"カブトムシ・昆虫" },
+  { re:/山|森|自然/, tag:"山・自然" },
+  { re:/村|町おこし|地域|地方/, tag:"地域・まち" },
+  { re:/団地/, tag:"団地" },
+  { re:/レトロ|昭和|ノスタルジ/, tag:"レトロ" },
+  { re:/服|ファッション|衣装/, tag:"服・ファッション" },
+  { re:/子ども|子供|こども/, tag:"子ども向け" },
+  { re:/写真|撮影|カメラ/, tag:"写真・撮影" },
+];
+const SKILL_RULES = [
+  { re:/写真|撮影|カメラ|撮り|撮る|撮って/, skill:"写真・撮影" },
+  { re:/SNS|インスタ|Instagram|ツイッター|TikTok/, skill:"SNS運用" },
+  { re:/動画|映像|YouTube|編集/, skill:"動画・編集" },
+  { re:/無限に.*食|大食い|食いたい|食べたい/, skill:"大食い（食べる側）" },
+  { re:/山案内|ガイド|案内する/, skill:"山案内・ガイド" },
+  { re:/デザイン|イラスト|絵/, skill:"デザイン" },
+  { re:/文章|ライティング|書く/, skill:"文章" },
+];
+const DOMAIN_RULES = [
+  { re:/PR|宣伝|広報|集客/, domain:"PR" },
+  { re:/ラーメン|食べ放題|飲食|グルメ|食/, domain:"飲食・食体験" },
+  { re:/写真|撮影|撮/, domain:"撮影" },
+  { re:/山|カブトムシ|案内|体験|ツアー|見せたい/, domain:"体験・ガイド" },
+  { re:/仕事|手伝|働/, domain:"仕事・お手伝い" },
+  { re:/村|地域|町/, domain:"地域・まちづくり" },
+  { re:/服|ファッション|作品/, domain:"作品・ファッション" },
+];
+const MOOD_RULES = [
+  { re:/夕暮れ|寂しい|さみしい|レトロ|ノスタルジ|作品っぽく|哀愁/, mood:"ノスタルジック・作品性" },
+  { re:/ええ感じ|楽しく|ゆる/, mood:"カジュアル・ゆるい温度感" },
+  { re:/本物|ガチ|本気/, mood:"本気・本物志向" },
+];
+// ドメインの近接（完全一致でなくても仕事として噛み合う関係）
+const DOMAIN_NEAR = [
+  ["PR","仕事・お手伝い"], ["PR","SNS運用"], ["PR","撮影"], ["PR","地域・まちづくり"],
+  ["地域・まちづくり","仕事・お手伝い"], ["撮影","作品・ファッション"],
+  ["飲食・食体験","PR"], ["体験・ガイド","地域・まちづくり"],
+];
+
+// ---- 構造化 ----
+function extractPeriod(text){
+  const m = text.match(/(\d+)\s*(ヶ月|か月|カ月)/);
+  if (m) return "約" + m[1] + "ヶ月";
+  if (/短期|すぐ|今週/.test(text)) return "短期";
+  if (/長期|ずっと/.test(text)) return "長期";
+  return "";
+}
+function analyze(text, extras){
+  extras = extras || {};
+  const has = re => re.test(text);
+  const themes = [], skills = [], domains = [], moods = [];
+  THEME_RULES.forEach(r => { if (r.re.test(text)) themes.push(r.tag); });
+  SKILL_RULES.forEach(r => { if (r.re.test(text)) skills.push(r.skill); });
+  DOMAIN_RULES.forEach(r => { if (r.re.test(text)) domains.push(r.domain); });
+  MOOD_RULES.forEach(r => { if (r.re.test(text)) moods.push(r.mood); });
+
+  // intent：依頼したい(want) / 提供できる(offer) / 参加したい(join)
+  let intent = "want", intentWhy = "「〜したい」＝発注・依頼側と推定";
+  if (has(/必須|募集|探して|求む/)) { intent = "want"; intentWhy = "「必須／募集」の語から依頼側と推定"; }
+  else if (has(/撮ってほしい|してほしい|見せてほしい|お願いしたい|やってほしい/)) { intent = "want"; intentWhy = "「〜してほしい」から依頼側と推定"; }
+  else if (has(/おるで|あります|案内する|できます|できる|保証|撮りたい|撮ります/)) { intent = "offer"; intentWhy = "「できる／する／撮りたい（撮る側）」から提供側と推定"; }
+  else if (has(/仕事したい|食いたい|食べたい|参加したい|やってみたい|行きたい/)) { intent = "join"; intentWhy = "「〜したい（自分がやる）」から参加希望と推定"; }
+
+  // location
+  let location = "未設定";
+  if (has(/オンライン|リモート|在宅/)) location = "オンライン";
+  else if (has(/村|山|団地|店|現地|家/)) location = "現地";
+
+  // commercial_use
+  let commercial = "未確認";
+  if (has(/作品/)) commercial = "作品";
+  else if (has(/PR|仕事|食べ放題|商用/)) commercial = "商用";
+
+  // budget：本文の金額を優先的に拾い、なければフォーム入力
+  let budget = extras.budget || "";
+  const bm = text.match(/(\d[\d,]*)\s*(万円|円)/);
+  if (bm) budget = bm[1] + bm[2];
+  if (!budget) budget = "未設定";
+
+  // deadline：フォーム入力優先、なければ期間表現
+  const deadline = extras.deadline || extractPeriod(text) || "未設定";
+
+  // risk_flags（簡易チェック：表示のみ）
+  const risks = [];
+  if (/(\d{2,4}-\d{2,4}-\d{4}|@|LINE\s*ID|電話)/.test(text)) risks.push("連絡先らしき文字列を含む（公開前に要確認）");
+  if (/絶対儲|必ず稼|投資.*勧誘/.test(text)) risks.push("勧誘の可能性（要確認）");
+
+  return {
+    text, intent, intentWhy, domains, themes, skills, moods,
+    budget, deadline, period: extractPeriod(text),
+    location, commercial_use: commercial, privacy_level: "公開",
+    risk_flags: risks,
+  };
+}
+
+// ---- 相性判定 ----
+const COMPLEMENT = { "want>offer":25, "offer>want":25, "want>join":24, "join>want":24, "offer>join":8, "join>offer":8 };
+function compatibility(a, b){
+  let score = 0; const reasons = [];
+  // 向きの相補性
+  const key = a.intent + ">" + b.intent;
+  const comp = COMPLEMENT[key] || 4;
+  score += comp;
+  if (comp >= 24) reasons.push(
+    a.intent === "want" ? "「探している側」と「応えられる側」で、向きが噛み合っている" :
+    a.intent === "join" ? "「参加したい側」と「人を探している側」で、向きが噛み合っている" :
+                          "「提供できる側」と「求めている側」で、向きが噛み合っている");
+  // テーマ一致
+  const sharedThemes = a.themes.filter(t => b.themes.includes(t));
+  sharedThemes.forEach(t => { score += 18; reasons.push("テーマが一致：「" + t + "」"); });
+  // ドメイン一致・近接
+  const sharedDomains = a.domains.filter(d => b.domains.includes(d));
+  if (sharedDomains.length){ score += 15; reasons.push("分野が一致：" + sharedDomains.join("・")); }
+  else {
+    const near = DOMAIN_NEAR.some(([x,y]) =>
+      (a.domains.includes(x) && b.domains.includes(y)) || (a.domains.includes(y) && b.domains.includes(x)));
+    if (near){ score += 12; reasons.push("分野が近く、仕事として噛み合いやすい"); }
+  }
+  // スキル相補：相手のスキルが自分のテーマ・分野に応える
+  const skillHit = b.skills.filter(s =>
+    a.themes.some(t => s.includes(t.split("・")[0])) ||
+    (s === "写真・撮影" && a.domains.includes("撮影")) ||
+    (s === "大食い（食べる側）" && (a.domains.includes("飲食・食体験") || a.themes.includes("食べ放題・大食い"))) ||
+    (s === "山案内・ガイド" && a.domains.includes("体験・ガイド")));
+  const skillHit2 = a.skills.filter(s =>
+    b.themes.some(t => s.includes(t.split("・")[0])) ||
+    (s === "写真・撮影" && b.domains.includes("撮影")) ||
+    (s === "大食い（食べる側）" && (b.domains.includes("飲食・食体験") || b.themes.includes("食べ放題・大食い"))) ||
+    (s === "山案内・ガイド" && b.domains.includes("体験・ガイド")));
+  if (skillHit.length || skillHit2.length){
+    score += 12;
+    reasons.push("能力が需要に応えている：" + [...new Set([...skillHit, ...skillHit2])].join("・"));
+  }
+  // 期間の一致
+  if (a.period && b.period && a.period === b.period){
+    score += 15; reasons.push("期間の温度感が一致（どちらも" + a.period + "）");
+  }
+  // 雰囲気（mood）の近さ
+  const sharedMoods = a.moods.filter(m => b.moods.includes(m));
+  sharedMoods.forEach(m => { score += 10; reasons.push("雰囲気の方向が近い：" + m); });
+  // 場所
+  if (a.location !== "未設定" && a.location === b.location){ score += 4; }
+  return { score: Math.min(score, 98), reasons };
+}
+
+/* ============================================================
+   状態とテストデータ
+   ============================================================ */
+let posts = [];       // {id, ...analyze結果}
+let myId = null;      // 自分のンダのid
+let ndaEdges = new Set(); // "fromId>toId"
+let seq = 0;
+
+const TEST_NDA = [
+  { id:"A", text:"1ヶ月で村のPRええ感じにしたい" },
+  { id:"B", text:"友達と1ヶ月くらい楽しく仕事したい" },
+  { id:"C", text:"食べ放題PRしたい。ラーメン5杯食べられる人必須" },
+  { id:"D", text:"腹減った。無限にラーメン食いたい" },
+  { id:"E", text:"カブトムシおるで。山案内する。一匹保証" },
+  { id:"F", text:"夕暮れの団地で、なんか寂しい写真撮りたい" },
+  { id:"G", text:"レトロな服を作品っぽく撮ってほしい" },
+];
+TEST_NDA.forEach(t => posts.push(Object.assign({ id:t.id }, analyze(t.text))));
+// デモ用プリセット：相手からの「んだ」が既に入っている組み合わせ
+["B>A","D>C","G>F"].forEach(e => ndaEdges.add(e));
+// デモ用：Gは「秘密候補」として登録し、NDA確認ステップを試せるようにする
+const gPost = posts.find(p => p.id === "G");
+if (gPost) gPost.privacy_level = "秘密候補";
+
+/* ============================================================
+   段階開示（つながりの部屋）用の状態とダミープロフィール
+   ※ 開示される情報はすべてダミー。本物の個人情報は使わない
+   ============================================================ */
+let pairState = {}; // key "A|B"（ソート済み） -> { agree:{}, nda:{}, contact:{} }
+function getPair(x, y){
+  const k = [x, y].sort().join("|");
+  if (!pairState[k]) pairState[k] = { agree:{}, wish:{}, nda:{}, contact:{}, declined:null };
+  return pairState[k];
+}
+function pairKeyOf(x, y){ return [x, y].sort().join("|"); }
+function peekPair(x, y){ return pairState[pairKeyOf(x, y)] || null; }
+const PROFILES = {
+  A:{ name:"サトウ（村の広報担当）", intro:"村のPRを担当しています。まずは条件のすり合わせから。", contact:"a-sample@ndanda.example" },
+  B:{ name:"タナカ＆友人チーム", intro:"写真とSNSができます。1ヶ月くらい現地で動けます。", contact:"b-sample@ndanda.example" },
+  C:{ name:"ラーメン店 店主", intro:"食べ放題企画のPRをしたい店側です。", contact:"c-sample@ndanda.example" },
+  D:{ name:"大食い挑戦者 クマダ", intro:"ラーメンなら無限にいけます。出演の相談も歓迎。", contact:"d-sample@ndanda.example" },
+  E:{ name:"山の案内人 ヤマダ", intro:"カブトムシのいる山、案内します。一匹保証。", contact:"e-sample@ndanda.example" },
+  F:{ name:"写真愛好家 フジタ", intro:"夕暮れと団地と、寂しい写真が好きです。", contact:"f-sample@ndanda.example" },
+  G:{ name:"服好きの依頼人", intro:"レトロな服を作品として残したいです。詳細は秘密候補にしています。", contact:"g-sample@ndanda.example" },
+};
+function profileOf(p){
+  if (PROFILES[p.id]) return PROFILES[p.id];
+  return { name:"ンダ " + p.id + " の投稿者", intro:"（ダミープロフィールです）", contact:String(p.id).toLowerCase() + "-sample@ndanda.example" };
+}
+
+/* ============================================================
+   描画
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const INTENT_LABEL = { want:"依頼したい", offer:"提供できる", join:"参加したい" };
+
+function tagHtml(p){
+  let h = "";
+  h += '<span class="tag plain">匿名</span>';
+  if (p.privacy_level === "秘密候補") h += '<span class="tag lock">🔒 秘密候補</span>';
+  h += '<span class="tag">' + esc(INTENT_LABEL[p.intent]) + "</span>";
+  p.domains.forEach(d => h += '<span class="tag domain">' + esc(d) + "</span>");
+  p.themes.forEach(d => h += '<span class="tag theme">' + esc(d) + "</span>");
+  p.skills.forEach(d => h += '<span class="tag skill">' + esc(d) + "</span>");
+  p.moods.forEach(d => h += '<span class="tag mood">' + esc(d) + "</span>");
+  if (p.budget && p.budget !== "未設定") h += '<span class="tag plain">予算：' + esc(p.budget) + "</span>";
+  if (p.deadline && p.deadline !== "未設定") h += '<span class="tag plain">期限：' + esc(p.deadline) + "</span>";
+  if (p.location !== "未設定") h += '<span class="tag plain">' + esc(p.location) + "</span>";
+  h += '<span class="tag plain">' + esc(p.commercial_use) + "／" + esc(p.privacy_level) + "</span>";
+  (p.risk_flags || []).forEach(r => h += '<span class="tag warn">⚠ ' + esc(r) + "</span>");
+  return h;
+}
+
+function renderGrid(){
+  $("ndaGrid").innerHTML = posts.map(p => {
+    const isMine = p.id === myId;
+    const iNda = myId && ndaEdges.has(myId + ">" + p.id);
+    const theyNda = myId && ndaEdges.has(p.id + ">" + myId);
+    const pst = myId ? peekPair(myId, p.id) : null;
+    const ended = !!(pst && pst.declined);
+    const matched = iNda && theyNda && !ended;
+    let foot = "";
+    if (isMine){
+      foot = '<span class="nda-state hot">あなたのンダ</span>';
+    } else if (myId && ended){
+      foot = '<span class="nda-state">終了したマッチです（素性は一切交換されていません）</span>';
+    } else if (myId){
+      foot =
+        '<button class="btn btn-nda' + (iNda ? " done" : "") + '" data-nda="' + p.id + '">' + (iNda ? "んだ済み" : "んだ") + "</button>" +
+        '<span class="nda-state' + (theyNda ? " hot" : "") + '">' + (theyNda ? "相手も あなたに「んだ」しています" : "相手からの「んだ」はまだ") + "</span>";
+    } else {
+      foot = '<span class="nda-state">「んだ」を押すには、まず自分のンダを選んでください</span>';
+    }
+    return '<div class="nda-card' + (isMine ? " mine" : "") + (matched ? " matched" : "") + '">' +
+      (ended ? '<div class="ended-banner">このマッチは終了しました（匿名のまま）</div>' :
+       matched ? '<div class="ndanda-banner">んだんだ！ マッチ成立候補</div><button class="btn btn-ghost" data-room="1">つながりの部屋で条件確認へ →</button>' : "") +
+      '<div class="nda-text">' + esc(p.text) + "</div>" +
+      '<div class="tags">' + tagHtml(p) + "</div>" +
+      '<div class="nda-meta">ンダ ' + esc(p.id) + " ／ " + esc(p.intentWhy) + "</div>" +
+      '<div class="nda-foot">' + foot +
+      (isMine ? "" : '<button class="btn btn-ghost" data-mine="' + p.id + '">このンダとして使う</button>') +
+      "</div></div>";
+  }).join("");
+  document.querySelectorAll("[data-nda]").forEach(b => b.addEventListener("click", () => toggleNda(b.dataset.nda)));
+  document.querySelectorAll("[data-mine]").forEach(b => b.addEventListener("click", () => { myId = b.dataset.mine; renderAll(); }));
+  document.querySelectorAll("[data-room]").forEach(b => b.addEventListener("click", () => $("roomSec").scrollIntoView({ behavior:"smooth" })));
+}
+
+function renderWhoami(){
+  const me = posts.find(p => p.id === myId);
+  $("whoami").innerHTML = me
+    ? "あなたは <b>" + esc(me.text) + "</b>（ンダ " + esc(me.id) + "）として見ています。"
+    : "まだ選ばれていません。下の一覧で「このンダとして使う」を押すか、新しくンダを投げると自動であなたのンダになります。";
+}
+
+function renderMatches(){
+  const box = $("matchList");
+  const me = posts.find(p => p.id === myId);
+  if (!me){ box.innerHTML = '<p class="small">あなたのンダを選ぶと、相手との相性スコアと「なぜ合うのか」を表示します。</p>'; return; }
+  const rows = posts.filter(p => p.id !== myId)
+    .map(p => ({ p, r: compatibility(me, p) }))
+    .sort((x, y) => y.r.score - x.r.score);
+  box.innerHTML = rows.map(({ p, r }) => {
+    const pst = peekPair(myId, p.id);
+    const isEnded = !!(pst && pst.declined);
+    const matched = ndaEdges.has(myId + ">" + p.id) && ndaEdges.has(p.id + ">" + myId) && !isEnded;
+    return '<div class="match-row"><div class="score"><div class="num">' + r.score + '</div><div class="lbl">相性スコア</div>' +
+      '<div class="bar"><i style="width:' + r.score + '%"></i></div></div>' +
+      '<div class="match-body"><div class="match-pair">' + esc(p.text) +
+      (matched ? ' <span style="color:var(--teal)">— んだんだ成立候補！</span>' : isEnded ? ' <span style="color:var(--sub)">— 終了したマッチ（匿名のまま）</span>' : "") + "</div>" +
+      '<div class="match-reasons">' + (r.reasons.length ? r.reasons.map(esc).join(" ／ ") : "いまのところ強い接点は見つかっていません") + "</div>" +
+      '<div class="tags">' + tagHtml(p) + "</div></div></div>";
+  }).join("");
+}
+
+/* ============================================================
+   つながりの部屋：条件すり合わせ → 成立ンダ →（NDA確認）→ 段階開示
+   ============================================================ */
+const COND_FIELDS = [
+  { label:"向き（intent）", get:q => INTENT_LABEL[q.intent] },
+  { label:"分野（domain）", get:q => q.domains.join("・") || "—" },
+  { label:"テーマ", get:q => q.themes.join("・") || "—" },
+  { label:"能力（skills）", get:q => q.skills.join("・") || "—" },
+  { label:"予算（budget）", get:q => q.budget },
+  { label:"期限（deadline）", get:q => q.deadline },
+  { label:"場所（location）", get:q => q.location },
+  { label:"商用利用", get:q => q.commercial_use },
+  { label:"公開範囲", get:q => q.privacy_level },
+];
+function stepsHtml(stage, needsNda){
+  const labels = ["匿名で出会う", "条件のすり合わせ", "要望確認・NDA共有", "段階開示"];
+  return '<div class="steps">' + labels.map((l, i) =>
+    '<div class="step' + (i < stage ? " done" : i === stage ? " now" : "") + '">' + (i + 1) + ". " + esc(l) + "</div>").join("") + "</div>";
+}
+function memoHtml(me, p, needsNda){
+  const rows = COND_FIELDS.map(f =>
+    "<tr><th>" + esc(f.label) + "</th><td>" + esc(f.get(me)) + "</td><td>" + esc(f.get(p)) + "</td></tr>").join("");
+  return '<div class="memo-box"><b>📝 合意メモ（成立ンダ）</b>' +
+    '<div class="small">双方が条件に合意したため、このメモが自動生成されました。双方に同じ内容が見えます。これはプロトタイプの自動生成メモで、法的な契約書ではありません。</div>' +
+    '<table class="cond"><tr><th></th><th>あなた（ンダ ' + esc(me.id) + '）</th><th>相手（ンダ ' + esc(p.id) + '）</th></tr>' +
+    "<tr><th>要望（ンダ本文）</th><td>" + esc(me.text) + "</td><td>" + esc(p.text) + "</td></tr>" + rows + "</table>" +
+    '<div class="small" style="margin-top:8px">開示の段取り：' +
+    (needsNda
+      ? "このペアには「秘密候補」が含まれるため、詳細情報は、双方が相手の要望を最終確認し、NDAを共有したあとに段階開示されます。"
+      : "詳細情報は、双方が相手の要望を最終確認したあとに段階的に開示されます（まず表示名とひとこと、次に双方の了承で連絡先）。") +
+    "</div></div>";
+}
+function wishHtml(me, p, st){
+  const rows = COND_FIELDS.map(f =>
+    "<tr><th>" + esc(f.label) + "</th><td>" + esc(f.get(p)) + "</td></tr>").join("");
+  return '<div class="wish-box"><b>相手の要望の最終確認</b><br>' +
+    "開示の前に、相手が何を求めているかを、最後にもう一度ここで確認します。自分の条件への合意とは別に、「相手の要望を確認した」ことを双方が示してから、先へ進みます。" +
+    '<table class="cond"><tr><th></th><th>相手（ンダ ' + esc(p.id) + '）の要望</th></tr>' +
+    "<tr><th>要望（ンダ本文）</th><td>" + esc(p.text) + "</td></tr>" + rows + "</table>" +
+    '<div class="agree-row">' +
+    (st.wish[me.id]
+      ? '<span class="nda-state hot">✓ あなたは相手の要望を確認済み</span>'
+      : '<button class="btn btn-main" data-wish-mine="' + esc(p.id) + '">相手の要望を確認しました</button>') +
+    (st.wish[p.id]
+      ? '<span class="nda-state hot">✓ 相手も、あなたの要望を確認済み</span>'
+      : '<span class="nda-state">相手の確認はまだです</span> <button class="btn btn-ghost" data-wish-sim="' + esc(p.id) + '">（デモ）相手も要望を確認する</button>') +
+    "</div></div>";
+}
+function pairHtml(me, p){
+  const st = getPair(me.id, p.id);
+  if (st.declined){
+    const byMe = st.declined === me.id;
+    return '<div class="pair-card ended">' +
+      '<div class="pair-head">このマッチは終了しました：あなた × ンダ ' + esc(p.id) + "</div>" +
+      '<div class="small">あなた：' + esc(me.text) + "<br>相手： " + esc(p.text) + "</div>" +
+      '<div class="lock-box" style="margin-top:10px">' + (byMe
+        ? "あなたが匿名のまま見送りました。名前・連絡先は相手に一切伝わっていませんし、見送った理由を伝える必要もありません。"
+        : "相手が匿名のまま、このマッチを見送りました。お互いの名前・連絡先は一切交換されていません。") +
+      "<br>「条件が合わなかった」は正常な結果です。匿名のうちに判断できるからこそ、断っても傷が浅く済む——それがこの設計の大事なところです。</div>" +
+      '<div class="agree-row"><button class="btn btn-ghost" data-reset="' + esc(p.id) + '">（デモ）このペアの状態をリセット</button></div></div>';
+  }
+  const needsNda = me.privacy_level === "秘密候補" || p.privacy_level === "秘密候補";
+  const established = !!(st.agree[me.id] && st.agree[p.id]);
+  const wishDone = !!(st.wish[me.id] && st.wish[p.id]);
+  const ndaDone = !needsNda || !!(st.nda[me.id] && st.nda[p.id]);
+  const unlocked = established && wishDone && ndaDone;
+  const stage = !established ? 1 : (!wishDone || (needsNda && !ndaDone) ? 2 : 3);
+  let h = '<div class="pair-card">';
+  h += '<div class="pair-head">' + (established ? "成立ンダ" : "んだんだ（マッチ成立候補）") + "：あなた × ンダ " + esc(p.id) + "</div>";
+  h += '<div class="small">あなた：' + esc(me.text) + "<br>相手： " + esc(p.text) + "</div>";
+  h += stepsHtml(stage, needsNda);
+  // ステップ1：条件のすり合わせ
+  h += '<h3 style="margin:14px 0 4px">ステップ1：条件のすり合わせ</h3>';
+  h += '<table class="cond"><tr><th>条件</th><th>あなた</th><th>相手（ンダ ' + esc(p.id) + "）</th><th></th></tr>";
+  COND_FIELDS.forEach(f => {
+    const va = f.get(me), vb = f.get(p);
+    const same = va === vb;
+    h += "<tr><th>" + esc(f.label) + "</th><td>" + esc(va) + "</td><td>" + esc(vb) + '</td><td><span class="judge' + (same ? "" : " diff") + '">' + (same ? "一致" : "確認ポイント") + "</span></td></tr>";
+  });
+  h += "</table>";
+  h += '<div class="agree-row">' +
+    (st.agree[me.id]
+      ? '<span class="nda-state hot">✓ あなたは条件に合意済み</span>'
+      : '<button class="btn btn-main" data-agree="' + esc(p.id) + '">この条件で合意する</button>') +
+    (st.agree[p.id]
+      ? '<span class="nda-state hot">✓ 相手も合意済み</span>'
+      : '<span class="nda-state">相手の合意はまだです</span> <button class="btn btn-ghost" data-agree-sim="' + esc(p.id) + '">（デモ）相手も合意する</button>') +
+    "</div>";
+  // 匿名のまま見送る（断る）導線：連絡先が開示されきるまでは、いつでも匿名のまま終われる
+  if (!(st.contact[me.id] && st.contact[p.id])){
+    h += '<div class="agree-row"><span class="small">合わないと感じたら、無理につながる必要はありません。匿名のままなら、断っても傷は浅く済みます。</span>' +
+      '<button class="btn btn-ghost" data-decline="' + esc(p.id) + '">今回はやめておく（匿名のまま）</button>' +
+      '<button class="btn btn-ghost" data-decline-sim="' + esc(p.id) + '">（デモ）相手がやめておく</button></div>';
+  }
+  // ステップ2：合意メモ → 相手の要望の最終確認 → その上でNDA共有（本人の確定順序）
+  h += '<h3 style="margin:14px 0 4px">ステップ2：相手の要望の最終確認' + (needsNda ? "とNDA共有" : "") + "</h3>";
+  if (!established){
+    h += '<div class="lock-box">双方が条件に合意すると、ここに「合意メモ」が自動生成されます。その上で、最後に相手の要望を確認し、' +
+      (needsNda ? "NDAを共有してから、開示に進みます。" : "開示に進みます。") + "</div>";
+  } else {
+    h += memoHtml(me, p, needsNda);
+    h += wishHtml(me, p, st);
+    if (needsNda){
+      if (!wishDone){
+        h += '<div class="nda-box"><b>NDA共有（秘密保持の約束）</b><br>' +
+          "NDAは、双方が相手の要望を確認した上で共有します。まず上の「相手の要望の最終確認」を双方分すませてください。</div>";
+      } else {
+        h += '<div class="nda-box"><b>NDA共有（秘密保持の約束）</b><br>' +
+          "双方が相手の要望を確認しました。その上で、合意メモに含まれる条件・内容について、詳細情報（名前・連絡先）を開示する前に、NDAを共有します。<br>" +
+          '<span class="small">※ プロトタイプのため、ここでは「共有・確認した」という導線だけを実装しています。実際のNDA文面は法務確認のうえで別途設定します（この画面には文面を置きません）。</span>' +
+          '<div class="agree-row">' +
+          (st.nda[me.id]
+            ? '<span class="nda-state hot">✓ あなたはNDAを確認済み</span>'
+            : '<button class="btn btn-ghost" data-nda-mine="' + esc(p.id) + '">合意メモの内容について、秘密保持に同意する（NDA確認）</button>') +
+          (st.nda[p.id]
+            ? '<span class="nda-state hot">✓ 相手もNDAを確認済み</span>'
+            : '<span class="nda-state">相手のNDA確認はまだです</span> <button class="btn btn-ghost" data-nda-sim="' + esc(p.id) + '">（デモ）相手もNDA確認する</button>') +
+          "</div></div>";
+      }
+    } else {
+      h += '<p class="small">このペアに「秘密候補」は含まれないため、NDA共有は不要です。双方の要望確認が済めば、段階開示に進みます。</p>';
+    }
+  }
+  // 最終ステップ：情報の段階開示
+  h += '<h3 style="margin:14px 0 4px">ステップ3：情報の段階開示</h3>';
+  if (!unlocked){
+    const waits = [];
+    if (!established) waits.push("双方の条件合意");
+    if (!wishDone) waits.push("双方による相手の要望の確認");
+    if (needsNda && !ndaDone) waits.push("双方のNDA確認");
+    h += '<div class="lock-box">🔒 まだ開示されていません（' + waits.join("と") + 'が完了すると開きます）。<br>' +
+      '相手の名前：<span class="masked">●●●●</span> ／ 連絡先：<span class="masked">●●●●</span></div>';
+  } else {
+    const prof = profileOf(p);
+    h += '<div class="profile-box"><b>第1段階の開示：相手の表示名とひとこと</b><br>' +
+      "名前：" + esc(prof.name) + "<br>ひとこと：" + esc(prof.intro) + '<br><span class="small">※ 開示される情報はすべてダミーデータです。</span></div>';
+    if (st.contact[me.id] && st.contact[p.id]){
+      h += '<div class="profile-box"><b>第2段階の開示：連絡先</b><br>相手の連絡先：' + esc(prof.contact) + "（ダミー）<br>" +
+        '<span class="small">ここから先は、サイト内のメッセージ等で直接やりとりする想定です（メッセージ機能はP1）。</span></div>';
+    } else {
+      h += '<div class="lock-box">連絡先は、双方が「開示する」を押したときだけ互いに見えます。<div class="agree-row">' +
+        (st.contact[me.id]
+          ? '<span class="nda-state hot">✓ あなたの連絡先は開示済み（相手の開示待ち）</span>'
+          : '<button class="btn btn-ghost" data-contact-mine="' + esc(p.id) + '">自分の連絡先を開示する</button>') +
+        (st.contact[p.id]
+          ? '<span class="nda-state hot">✓ 相手も開示済み</span>'
+          : '<button class="btn btn-ghost" data-contact-sim="' + esc(p.id) + '">（デモ）相手も開示する</button>') +
+        "</div></div>";
+    }
+  }
+  h += "</div>";
+  return h;
+}
+function renderRoom(){
+  const box = $("roomList");
+  const me = posts.find(p => p.id === myId);
+  if (!me){ box.innerHTML = '<p class="small">自分のンダを選ぶと、んだんだになった相手との「条件のすり合わせ」以降の流れがここに出ます。</p>'; return; }
+  const partners = posts.filter(p => p.id !== myId && ndaEdges.has(myId + ">" + p.id) && ndaEdges.has(p.id + ">" + myId));
+  if (!partners.length){ box.innerHTML = '<p class="small">まだ「んだんだ」になった相手はいません。上の相性リストや一覧で、相手に「んだ」を返してみてください。</p>'; return; }
+  box.innerHTML = partners.map(p => pairHtml(me, p)).join("");
+  const bind = (attr, fn) => box.querySelectorAll("[" + attr + "]").forEach(b => b.addEventListener("click", () => fn(b.getAttribute(attr))));
+  bind("data-agree", pid => { getPair(myId, pid).agree[myId] = true; renderAll(); });
+  bind("data-agree-sim", pid => { getPair(myId, pid).agree[pid] = true; renderAll(); });
+  bind("data-wish-mine", pid => { getPair(myId, pid).wish[myId] = true; renderAll(); });
+  bind("data-wish-sim", pid => { getPair(myId, pid).wish[pid] = true; renderAll(); });
+  bind("data-nda-mine", pid => { getPair(myId, pid).nda[myId] = true; renderAll(); });
+  bind("data-nda-sim", pid => { getPair(myId, pid).nda[pid] = true; renderAll(); });
+  bind("data-contact-mine", pid => { getPair(myId, pid).contact[myId] = true; renderAll(); });
+  bind("data-contact-sim", pid => { getPair(myId, pid).contact[pid] = true; renderAll(); });
+  bind("data-decline", pid => { getPair(myId, pid).declined = myId; renderAll(); });
+  bind("data-decline-sim", pid => { getPair(myId, pid).declined = pid; renderAll(); });
+  bind("data-reset", pid => { delete pairState[pairKeyOf(myId, pid)]; renderAll(); });
+}
+
+function renderAll(){ renderWhoami(); renderGrid(); renderMatches(); renderRoom(); }
+
+function toggleNda(targetId){
+  if (!myId || targetId === myId) return;
+  const k = myId + ">" + targetId;
+  if (ndaEdges.has(k)) ndaEdges.delete(k); else ndaEdges.add(k);
+  renderAll();
+}
+
+/* ============================================================
+   投稿フロー：投げる → 構造化確認（編集可） → 公開
+   ============================================================ */
+let draft = null;
+const SAMPLES = [
+  "子どもに本物のカブトムシを見せたい",
+  "商店街のSNSを1ヶ月手伝ってほしい",
+  "動画編集できます。週末だけ",
+];
+$("sampleChips").innerHTML = SAMPLES.map(s => '<span class="chip" data-sample="' + esc(s) + '">試す：' + esc(s) + "</span>").join("");
+document.querySelectorAll("[data-sample]").forEach(c => c.addEventListener("click", () => { $("ndaText").value = c.dataset.sample; }));
+
+$("postBtn").addEventListener("click", () => {
+  const text = $("ndaText").value.trim();
+  if (!text){ alert("ンダの本文を入れてください"); return; }
+  draft = analyze(text, { budget: $("ndaBudget").value.trim(), deadline: $("ndaDeadline").value.trim() });
+  showConfirm(draft);
+});
+
+const STRUCT_FIELDS = [
+  { key:"intent", label:"intent（向き）", type:"select", options:["want","offer","join"], labels:INTENT_LABEL },
+  { key:"domains", label:"domain（分野・カンマ区切り）", type:"list" },
+  { key:"themes", label:"テーマ（カンマ区切り）", type:"list" },
+  { key:"skills", label:"skills（能力・カンマ区切り）", type:"list" },
+  { key:"budget", label:"budget（予算）", type:"text" },
+  { key:"deadline", label:"deadline（期限）", type:"text" },
+  { key:"location", label:"location", type:"select", options:["未設定","現地","オンライン"] },
+  { key:"commercial_use", label:"commercial_use", type:"select", options:["未確認","商用","作品"] },
+  { key:"privacy_level", label:"privacy_level（公開範囲）", type:"select", options:["公開","限定","秘密候補"] },
+];
+function showConfirm(d){
+  $("confirmRaw").textContent = "「" + d.text + "」";
+  $("structForm").innerHTML = STRUCT_FIELDS.map(f => {
+    let input = "";
+    if (f.type === "select"){
+      input = "<select id='sf-" + f.key + "'>" + f.options.map(o =>
+        '<option value="' + o + '"' + (d[f.key] === o ? " selected" : "") + ">" + esc(f.labels ? f.labels[o] : o) + "</option>").join("") + "</select>";
+    } else if (f.type === "list"){
+      input = '<input type="text" id="sf-' + f.key + '" value="' + esc(d[f.key].join("、")) + '">';
+    } else {
+      input = '<input type="text" id="sf-' + f.key + '" value="' + esc(d[f.key]) + '">';
+    }
+    return "<div><label class='flabel'>" + f.label + "</label>" + input + "</div>";
+  }).join("") +
+  '<div><label class="flabel">AIの推定メモ</label><div class="small">' + esc(d.intentWhy) + "</div></div>";
+  $("confirmBox").classList.remove("hidden");
+  $("confirmBox").scrollIntoView({ behavior:"smooth" });
+}
+$("publishBtn").addEventListener("click", () => {
+  if (!draft) return;
+  STRUCT_FIELDS.forEach(f => {
+    const el = $("sf-" + f.key); if (!el) return;
+    if (f.type === "list") draft[f.key] = el.value.split(/[、,]/).map(s => s.trim()).filter(Boolean);
+    else draft[f.key] = el.value;
+  });
+  draft.period = extractPeriod(draft.text);
+  seq += 1;
+  draft.id = "N" + seq;
+  posts.unshift(draft);
+  myId = draft.id;
+  draft = null;
+  $("ndaText").value = ""; $("ndaBudget").value = ""; $("ndaDeadline").value = "";
+  $("confirmBox").classList.add("hidden");
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+$("cancelBtn").addEventListener("click", () => { draft = null; $("confirmBox").classList.add("hidden"); });
+
+renderAll();
+
+/* ============================================================
+   年齢確認ゲート（入口の自己申告。本人確認は繋がる段階で別途）
+   ============================================================ */
+(function(){
+  const KEY = "ndandaAgeGateV1";
+  const gate = $("ageGate"), check = $("ageCheck"), enterBtn = $("ageEnterBtn");
+  function openGate(){
+    gate.classList.remove("hidden");
+    document.body.classList.add("gate-locked");
+  }
+  function closeGate(){
+    gate.classList.add("hidden");
+    document.body.classList.remove("gate-locked");
+  }
+  let passed = false;
+  try { passed = sessionStorage.getItem(KEY) === "ok"; } catch(e) {}
+  if (passed) closeGate(); else openGate();
+  check.addEventListener("change", () => { enterBtn.disabled = !check.checked; });
+  enterBtn.addEventListener("click", () => {
+    if (!check.checked) return;
+    try { sessionStorage.setItem(KEY, "ok"); } catch(e) {}
+    closeGate();
+  });
+  $("ageUnderBtn").addEventListener("click", () => {
+    $("ageDeny").classList.remove("hidden");
+    check.checked = false;
+    enterBtn.disabled = true;
+  });
+  $("ageResetLink").addEventListener("click", (ev) => {
+    ev.preventDefault();
+    try { sessionStorage.removeItem(KEY); } catch(e) {}
+    check.checked = false;
+    enterBtn.disabled = true;
+    $("ageDeny").classList.add("hidden");
+    openGate();
+    window.scrollTo({ top: 0 });
+  });
+})();
+</script>
+</body>
+</html>
