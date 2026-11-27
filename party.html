@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>んだんだ｜パーティ仕様（雰囲気版）</title>
+<style>
+  :root{ --bg:#fdf8f0; --card:#ffffff; --ink:#2b2620; --sub:#8a7f70; --accent:#e8862e; --accent2:#3f9e63; --line:#eee2d0; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap{ max-width:430px; margin:0 auto; padding:16px 14px 120px; }
+  header{ text-align:center; padding:18px 0 8px; }
+  .logo{ font-size:34px; font-weight:900; letter-spacing:.08em; }
+  .logo span{ color:var(--accent); }
+  .catch{ font-size:13px; color:var(--sub); margin-top:4px; letter-spacing:.14em; }
+  .one{ font-size:12px; color:var(--sub); margin-top:2px; }
+  .note{ background:#fff3df; border:1px dashed var(--accent); border-radius:12px; font-size:12px; padding:8px 12px; margin:14px 0 4px; color:#7a5a22; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px 14px 12px; margin-top:14px; box-shadow:0 2px 10px rgba(120,90,40,.06); }
+  .cat{ font-size:15px; font-weight:800; }
+  .meta{ display:flex; justify-content:space-between; align-items:baseline; margin-top:2px; }
+  .who{ font-size:13px; color:var(--accent); font-weight:700; }
+  .date{ font-size:11px; color:var(--sub); }
+  .head{ font-size:17px; font-weight:800; margin-top:6px; line-height:1.45; }
+  .img{ margin-top:10px; height:120px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:40px; }
+  .sns{ margin-top:10px; font-size:12px; color:var(--sub); }
+  .sns b{ color:var(--ink); font-weight:600; }
+  .badge{ display:inline-block; font-size:10px; font-weight:700; border-radius:999px; padding:2px 8px; margin-left:6px; vertical-align:middle; }
+  .b-nda{ background:#e8f4ec; color:var(--accent2); border:1px solid #bfe0cc; }
+  .b-adult{ background:#fdecec; color:#c0392b; border:1px solid #f3c1c1; }
+  .b-free{ background:#eef2fb; color:#4666b0; border:1px solid #ccd8f2; }
+  .detail-btn{ margin-top:10px; font-size:13px; color:var(--accent); background:none; border:none; cursor:pointer; font-weight:700; padding:0; }
+  .detail{ display:none; margin-top:8px; background:#fbf6ec; border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.7; }
+  .detail.open{ display:block; }
+  .detail .rt{ font-weight:800; font-size:12px; color:var(--sub); letter-spacing:.1em; }
+  .nda-btn{ display:block; width:100%; margin-top:12px; background:var(--accent); color:#fff; border:none; border-radius:999px; padding:13px; font-size:16px; font-weight:900; letter-spacing:.2em; cursor:pointer; }
+  .nda-btn:active{ transform:scale(.98); }
+  /* AI sheet */
+  .sheet{ position:fixed; left:0; right:0; bottom:0; max-width:430px; margin:0 auto; background:#fff; border-radius:22px 22px 0 0; box-shadow:0 -6px 30px rgba(60,40,10,.25); padding:16px 16px 22px; transform:translateY(105%); transition:transform .3s ease; max-height:82vh; overflow-y:auto; z-index:10; }
+  .sheet.open{ transform:translateY(0); }
+  .sheet .ai-head{ display:flex; align-items:center; gap:8px; font-weight:900; font-size:15px; }
+  .ai-face{ width:30px; height:30px; border-radius:50%; background:var(--accent2); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .ai-body{ font-size:13.5px; line-height:1.8; margin-top:10px; }
+  .ai-body .rules{ background:#f4faf6; border:1px solid #d8ecdf; border-radius:12px; padding:8px 12px; margin:8px 0; }
+  .qa{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .qa button{ font-size:12px; border:1px solid var(--line); background:#fffaf2; border-radius:999px; padding:6px 10px; cursor:pointer; }
+  .dl{ display:block; width:100%; margin-top:12px; background:var(--accent2); color:#fff; border:none; border-radius:12px; padding:12px; font-size:14px; font-weight:800; cursor:pointer; }
+  .caveat{ font-size:11px; color:var(--sub); margin-top:8px; line-height:1.6; }
+  .close{ margin-top:10px; width:100%; background:none; border:none; color:var(--sub); font-size:13px; cursor:pointer; padding:6px; }
+
+  .reg-btn{ display:block; width:100%; margin-top:12px; background:#fff; color:var(--accent); border:2px solid var(--accent); border-radius:999px; padding:11px; font-size:15px; font-weight:900; cursor:pointer; }
+  #register{ display:none; }
+  #register.open{ display:block; }
+  .field{ margin-top:14px; }
+  .field label{ font-size:13px; font-weight:800; display:block; margin-bottom:6px; }
+  .field input[type=text], .field input[type=email]{ width:100%; padding:12px; border:1px solid var(--line); border-radius:12px; font-size:15px; background:#fff; }
+  .hint{ font-size:11.5px; color:var(--sub); margin-top:5px; line-height:1.6; }
+  .age{ display:flex; gap:8px; align-items:flex-start; background:#fbf6ec; border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.6; }
+  .age input{ margin-top:3px; }
+  .submit{ display:block; width:100%; margin-top:18px; background:var(--accent); color:#fff; border:none; border-radius:999px; padding:14px; font-size:16px; font-weight:900; letter-spacing:.15em; cursor:pointer; }
+  .err{ color:#c0392b; font-size:12.5px; margin-top:10px; display:none; }
+  .done-box{ text-align:center; padding:22px 6px 8px; }
+  .done-box .big{ font-size:20px; font-weight:900; line-height:1.6; }
+  .backlink{ margin-top:14px; background:none; border:none; color:var(--sub); font-size:13px; cursor:pointer; width:100%; }
+
+  .post-btn{ display:block; width:100%; margin-top:10px; background:#fff; color:var(--accent2); border:2px solid var(--accent2); border-radius:999px; padding:11px; font-size:15px; font-weight:900; cursor:pointer; }
+  #postForm{ display:none; }
+  #postForm.open{ display:block; }
+  .field textarea{ width:100%; padding:12px; border:1px solid var(--line); border-radius:12px; font-size:15px; background:#fff; font-family:inherit; }
+  .field select{ width:100%; padding:12px; border:1px solid var(--line); border-radius:12px; font-size:15px; background:#fff; }
+  .checkrow{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+  .checkrow label{ display:flex; gap:5px; align-items:center; background:#fbf6ec; border-radius:999px; padding:6px 12px; font-size:13px; font-weight:600; }
+  .scrim{ position:fixed; inset:0; background:rgba(40,30,15,.35); opacity:0; pointer-events:none; transition:opacity .3s; z-index:9; }
+  .scrim.open{ opacity:1; pointer-events:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">んだ<span>んだ</span></div>
+    <div class="catch">探す、見つかる、ンダ、繋がる</div>
+    <div class="one">匿名のまま相手を探せる無料のマッチングサービス</div>
+  </header>
+  <div class="note">これは「パーティ仕様」の雰囲気版です。前のプロトタイプとは別に置いてあります。</div>
+  <button class="reg-btn" id="openReg">登録する（メアドだけ）</button>
+  <div id="register">
+    <div class="card">
+      <div class="cat">新規登録</div>
+      <div class="hint">入口はメアドだけ。本名や住所は、今は聞きません。</div>
+      <div class="field">
+        <label>通り名</label>
+        <input type="text" id="regName" placeholder="例：ttt76">
+        <div class="hint">公開されるのは、この通り名だけです。実績はこの名前に積もります。</div>
+      </div>
+      <div class="field">
+        <label>メールアドレス</label>
+        <input type="email" id="regMail" placeholder="例：you@example.com">
+        <div class="hint">連絡用だけに使います。公開されません。</div>
+      </div>
+      <div class="field">
+        <label>年齢確認（自己申告）</label>
+        <div class="age"><input type="checkbox" id="regAge"><div>18歳以上です。成人向けの席は、この申告がある人だけに表示されます。<br>※本人確認は、実際に繋がる段階で強めます。</div></div>
+      </div>
+      <div class="err" id="regErr"></div>
+      <button class="submit" id="regSubmit">この内容で登録する</button>
+      <div class="hint" style="margin-top:10px;">個人情報（本名・住所など）は、相手と繋がることが決まった段階で、その時に必要な分だけ入力します。</div>
+    </div>
+  </div>
+  <div id="regDone" style="display:none;">
+    <div class="card"><div class="done-box">
+      <div class="big">登録できました🎉</div>
+      <div style="font-size:14px; line-height:1.8; margin-top:8px;">あなたの通り名は <b id="doneName"></b> です。<br>探すのも、書くのも、ここから自由です。</div>
+      <button class="submit" id="doneBack">フィードに戻る</button>
+    </div></div>
+  </div>
+  <button class="post-btn" id="openPost">イベントを登録する</button>
+  <div id="postForm">
+    <div class="card">
+      <div class="cat">イベント登録</div>
+      <div class="hint">自由に書けば、AIがカードの形に構造化します。</div>
+      <div class="field"><label>タイトル</label><input type="text" id="pfTitle" placeholder="例：現地集合解散 草津旅"></div>
+      <div class="field"><label>見出し（一行）</label><input type="text" id="pfHead" placeholder="例：〇日、草津集合🔆"></div>
+      <div class="field"><label>会場</label><input type="text" id="pfVenue" placeholder="例：月見湯温泉（桜上水）"></div>
+      <div class="field"><label>詳細（自由文）</label><textarea id="pfDesc" rows="3" placeholder="どんな集まりか、自由に書いてください"></textarea></div>
+      <div class="field"><label>ルール（1行に1つ）</label><textarea id="pfRules" rows="4" placeholder="現地集合、現地解散&#10;酒飲む人は宿泊必須"></textarea></div>
+      <div class="field"><label>画像のイメージ</label><select id="pfEmoji"><option value="♨️">♨️ 温泉</option><option value="🍶">🍶 お酒</option><option value="💃">💃 ダンス</option><option value="🐟">🐟 釣り</option><option value="🍂">🍂 秋</option><option value="🎉">🎉 パーティ</option><option value="🎤">🎤 カラオケ・芸</option></select></div>
+      <div class="field"><label>SNSにも投稿する（ひとりPRタイムズ）</label><div class="checkrow">
+        <label><input type="checkbox" class="pfSns" value="X" checked>X</label>
+        <label><input type="checkbox" class="pfSns" value="Instagram">Instagram</label>
+        <label><input type="checkbox" class="pfSns" value="YouTube">YouTube</label></div></div>
+      <div class="field"><label>席の設定</label><div class="checkrow">
+        <label><input type="checkbox" id="pfNda">NDAあり（内緒の席）</label>
+        <label><input type="checkbox" id="pfAdult">成人向け</label></div></div>
+      <div class="err" id="pfErr"></div>
+      <button class="submit" id="pfSubmit" style="background:var(--accent2);">AIに構造化して投稿する</button>
+    </div>
+  </div>
+  <div id="feed"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet">
+  <div class="ai-head"><div class="ai-face">ん</div><div>んだんだAI</div></div>
+  <div class="ai-body" id="aiBody"></div>
+  <div class="qa" id="qa"></div>
+  <div id="dlArea"></div>
+  <button class="close" id="closeBtn">とじる</button>
+</div>
+
+<script>
+const POSTS = [
+  { cat:"現地集合解散 草津旅", who:"ttt76", date:"2026/11/27", head:"〇日、草津集合🔆", emoji:"♨️", bg:"linear-gradient(135deg,#ffe3b3,#ffc98a)", sns:"X ／ Instagram", nda:false, adult:false,
+    rules:["現地集合、現地解散","合わせ湯は入りに行こう","酒飲む人は宿泊必須","複数人参加可能"],
+    desc:"草津でゆるく集まる旅の仲間募集。決まりごとは少なめに。" },
+  { cat:"セクハラ愛好会🔆", who:"showa_club", date:"2026/11/26", head:"駄洒落、猥談、リアクション芸 解禁の席です", emoji:"🍶", bg:"linear-gradient(135deg,#ffd9d9,#ffb3c8)", sns:"X", nda:true, adult:true,
+    rules:["解禁はこの席の中だけ","録音・録画はなし","部外者には内緒（NDAあり）","成人のみ"],
+    desc:"普段は言えない小咄を、全員合意の席でだけ解禁する会。" },
+  { cat:"昭和キスデートクラブ", who:"baaya_ok", date:"2026/11/25", head:"雰囲気良かったらキスする前提のデートクラブです😎", emoji:"💃", bg:"linear-gradient(135deg,#e3d9ff,#ffc7e3)", sns:"Instagram ／ X", nda:true, adult:true,
+    rules:["前提は「雰囲気次第」、強制はなし","成人のみ","席のことは部外者には内緒（NDAあり）"],
+    desc:"昭和の空気でゆっくり仲良くなる、大人のデートクラブ。" },
+  { cat:"アジ釣り仲間", who:"sakurajosui_fish", date:"2026/11/24", head:"一緒にアジ釣りに行ける人。主に食べてくれる人募集", emoji:"🐟", bg:"linear-gradient(135deg,#cfeeff,#a8dcff)", sns:"YouTube ／ X", nda:false, adult:false,
+    rules:["釣り場は当日相談","釣った魚はその場でさばきます","食べる専門でも歓迎"],
+    desc:"釣る人と食べる人の、ちょうどいい分担さがし。" },
+  { cat:"銀杏と七輪の会", who:"ginnan76", date:"2026/11/23", head:"銀杏を拾って埋めて、七輪で焼きに行ける人", emoji:"🍂", bg:"linear-gradient(135deg,#fff3b3,#ffd98a)", sns:"X", nda:false, adult:false,
+    rules:["拾う場所は集まってから相談","七輪と炭はこちらで用意","手ぶら参加OK"],
+    desc:"秋の小さい楽しみを一緒にやる人さがし。" },
+];
+
+const feed = document.getElementById('feed');
+POSTS.forEach((p, i) => {
+  const badges = (p.nda ? '<span class="badge b-nda">NDAあり</span>' : '<span class="badge b-free">NDAなし</span>') + (p.adult ? '<span class="badge b-adult">成人向け</span>' : '');
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML =
+    '<div class="cat">' + p.cat + badges + '</div>' +
+    '<div class="meta"><div class="who">' + p.who + '</div><div class="date">投稿日 ' + p.date + '</div></div>' +
+    '<div class="head">' + p.head + '</div>' +
+    '<div class="img" style="background:' + p.bg + '">' + p.emoji + '</div>' +
+    '<div class="sns">SNS…… <b>' + p.sns + '</b></div>' +
+    (p.pr ? '<div class="sns" style="color:var(--accent2);">ひとりPRタイムズ配信： <b>' + p.pr + '</b>（モック）</div>' : '') +
+    '<button class="detail-btn" data-i="' + i + '">詳細 ▶</button>' +
+    '<div class="detail" id="d' + i + '"><div class="rt">内容</div>' + p.desc +
+      (p.venue ? '<div class="rt" style="margin-top:6px;">会場</div>' + p.venue : '') +
+      '<div class="rt" style="margin-top:6px;">ルール</div>' + p.rules.map(r => '・' + r).join('<br>') + '</div>' +
+    '<button class="nda-btn" data-i="' + i + '">んだする</button>';
+  feed.appendChild(el);
+});
+
+feed.addEventListener('click', e => {
+  const db = e.target.closest('.detail-btn');
+  if (db) { document.getElementById('d' + db.dataset.i).classList.toggle('open'); db.textContent = db.textContent.includes('▶') ? '詳細 ▼' : '詳細 ▶'; return; }
+  const nb = e.target.closest('.nda-btn');
+  if (nb) openAI(POSTS[+nb.dataset.i]);
+});
+
+const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
+const aiBody = document.getElementById('aiBody'), qa = document.getElementById('qa'), dlArea = document.getElementById('dlArea');
+let cur = null;
+
+function openAI(p) {
+  cur = p;
+  aiBody.innerHTML = 'こんにちは、んだんだAIです。「' + p.cat + '」（' + p.who + 'さん）の席ですね。' +
+    '<div class="rules"><b>この席のルール</b><br>' + p.rules.map(r => '・' + r).join('<br>') + '</div>' +
+    (p.nda
+      ? 'この席は<b>NDA（内緒の約束）</b>があります。合意メモが残り、NDAはダウンロードできます。流れは「合意 → NDA → 公開 → 開催」です。'
+      : 'この席にNDAはありません。合意メモだけ残して、そのまま開催に進みます。');
+  qa.innerHTML = '';
+  [['ルールはある？', () => 'ルールは上の通りです。主催の ' + cur.who + ' さんが決めました。守ることに合意した人だけが参加できます。'],
+   ['NDAって何？', () => '「席のことを部外者に話さない」という約束を、紙（データ）にして残すものです。怖い契約ではなく、内緒を守るための形です。'],
+   ['お金はかかる？', () => '探すのも、書くのも無料です。有料になるのは、繋がる時にNDAを作って保管してもらう場合だけです。']]
+   .forEach(([label, fn]) => { const b = document.createElement('button'); b.textContent = label; b.onclick = () => { aiBody.innerHTML += '<div style="margin-top:8px;">' + fn() + '</div>'; }; qa.appendChild(b); });
+  dlArea.innerHTML = '';
+  if (p.nda) {
+    const d = document.createElement('button'); d.className = 'dl'; d.textContent = 'NDAをダウンロードする';
+    d.onclick = downloadNDA; dlArea.appendChild(d);
+    const c = document.createElement('div'); c.className = 'caveat';
+    c.textContent = 'なお、現在時点の記録です。参加者が追加になる可能性があります。';
+    dlArea.appendChild(c);
+  }
+  sheet.classList.add('open'); scrim.classList.add('open');
+}
+function downloadNDA() {
+  const now = new Date();
+  const txt = '秘密保持に関する合意メモ（NDA）\n\n席の名前：' + cur.cat + '\n主催（通り名）：' + cur.who +
+    '\n記録日時：' + now.toLocaleString('ja-JP') + '\n\nルール：\n' + cur.rules.map(r => '・' + r).join('\n') +
+    '\n\n参加者は、席で知った内容を部外者に共有しないことに合意します。\n\nなお、これは現在時点の記録です。参加者が追加になる可能性があります。\n（んだんだ雰囲気版のサンプルです）';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+  a.download = 'nda-sample.txt'; a.click(); URL.revokeObjectURL(a.href);
+}
+
+// --- registration ---
+const regBox = document.getElementById('register'), regDone = document.getElementById('regDone');
+document.getElementById('openReg').onclick = () => { regBox.classList.add('open'); regBox.scrollIntoView({behavior:'smooth'}); };
+document.getElementById('regSubmit').onclick = () => {
+  const name = document.getElementById('regName').value.trim();
+  const mail = document.getElementById('regMail').value.trim();
+  const age = document.getElementById('regAge').checked;
+  const err = document.getElementById('regErr');
+  let msg = '';
+  if (!name) msg = '通り名を入れてください。';
+  else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) msg = 'メールアドレスの形が違うようです。';
+  else if (!age) msg = '年齢確認にチェックを入れてください。';
+  if (msg) { err.textContent = msg; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  document.getElementById('doneName').textContent = '「' + name + '」';
+  window.__myName = name; regBox.classList.remove('open'); regDone.style.display = 'block';
+  regDone.scrollIntoView({behavior:'smooth'});
+};
+document.getElementById('doneBack').onclick = () => { regDone.style.display = 'none'; window.scrollTo({top:0, behavior:'smooth'}); };
+
+
+function showPR(p, targets) {
+  cur = p;
+  let html = (window.__lastStruct ? '<div class="rules">' + window.__lastStruct + '</div>' : '') + 'AIがトンマナを合わせて、下書きを作りました。<br><span style="color:var(--sub); font-size:12px;">（雰囲気版ではモックです）</span>';
+  targets.forEach(t => {
+    let txt = '';
+    if (t === 'X') txt = '【' + p.cat + '】' + p.head + (p.venue ? ' ＠' + p.venue : '') + '　詳細とルールは、んだんだで確認してね。 #んだんだ';
+    else if (t === 'Instagram') txt = '✨ ' + p.cat + ' ✨\n' + p.head + '\n' + (p.venue ? '会場：' + p.venue + '\n' : '') + p.desc + '\nルールはプロフィールのリンク（んだんだ）から確認できます。\n#んだんだ #イベント #仲間募集';
+    else if (t === 'YouTube') txt = '【お知らせ】' + p.cat + '\n' + p.head + '\n' + p.desc + '\n参加のルールと合意の流れは、んだんだのページにまとめています。';
+    html += '<div class="rules"><b>' + t + ' 用</b><br>' + txt.replace(/\n/g, '<br>') + '</div>';
+  });
+  aiBody.innerHTML = html;
+  qa.innerHTML = ''; dlArea.innerHTML = '';
+  sheet.classList.add('open'); scrim.classList.add('open');
+}
+
+function closeAI() { sheet.classList.remove('open'); scrim.classList.remove('open'); }
+document.getElementById('closeBtn').onclick = closeAI; scrim.onclick = closeAI;
+
+// --- event posting ---
+const BGS = ["linear-gradient(135deg,#ffe3b3,#ffc98a)","linear-gradient(135deg,#ffd9d9,#ffb3c8)","linear-gradient(135deg,#cfeeff,#a8dcff)","linear-gradient(135deg,#e3d9ff,#ffc7e3)","linear-gradient(135deg,#d9f2df,#a8e0bc)"];
+function buildCard(p, i) {
+  const badges = (p.nda ? '<span class="badge b-nda">NDAあり</span>' : '<span class="badge b-free">NDAなし</span>') + (p.adult ? '<span class="badge b-adult">成人向け</span>' : '');
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML =
+    '<div class="cat">' + p.cat + badges + '</div>' +
+    '<div class="meta"><div class="who">' + p.who + '</div><div class="date">投稿日 ' + p.date + '</div></div>' +
+    '<div class="head">' + p.head + '</div>' +
+    '<div class="img" style="background:' + p.bg + '">' + p.emoji + '</div>' +
+    '<div class="sns">SNS…… <b>' + p.sns + '</b></div>' +
+    (p.pr ? '<div class="sns" style="color:var(--accent2);">ひとりPRタイムズ配信： <b>' + p.pr + '</b>（モック）</div>' : '') +
+    '<button class="detail-btn" data-i="' + i + '">詳細 ▶</button>' +
+    '<div class="detail" id="d' + i + '"><div class="rt">内容</div>' + p.desc +
+      (p.venue ? '<div class="rt" style="margin-top:6px;">会場</div>' + p.venue : '') +
+      '<div class="rt" style="margin-top:6px;">ルール</div>' + p.rules.map(r => '・' + r).join('<br>') + '</div>' +
+    '<button class="nda-btn" data-i="' + i + '">んだする</button>';
+  return el;
+}
+const postBox = document.getElementById('postForm');
+document.getElementById('openPost').onclick = () => { postBox.classList.add('open'); postBox.scrollIntoView({behavior:'smooth'}); };
+const API_URL = 'https://ndanda-api-852748727023.asia-northeast1.run.app/structure';
+document.getElementById('pfSubmit').onclick = async () => {
+  const title = document.getElementById('pfTitle').value.trim();
+  const head = document.getElementById('pfHead').value.trim();
+  const desc = document.getElementById('pfDesc').value.trim();
+  const err = document.getElementById('pfErr');
+  if (!title || !head) { err.textContent = 'タイトルと見出しを入れてください。'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  const btn = document.getElementById('pfSubmit');
+  const rulesText = document.getElementById('pfRules').value;
+  const formRules = rulesText.split('\n').map(s => s.trim()).filter(Boolean);
+  const formVenue = document.getElementById('pfVenue').value.trim();
+  const blob = [title, head, desc, formVenue ? '会場：' + formVenue : '', formRules.join('\n')].filter(Boolean).join('\n');
+  btn.disabled = true; const btnLabel = btn.textContent; btn.textContent = 'AIが構造化しています…';
+  let s = null, mode = 'local';
+  try {
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: blob, title: title, head: head, desc: desc, venue: formVenue, rules: rulesText }) });
+    s = await r.json(); mode = s.mode || 'local';
+  } catch (e) { s = null; }
+  btn.disabled = false; btn.textContent = btnLabel;
+  const ai = (mode === 'ai' && s) ? s : null;
+  const rules = ai && ai.rules && ai.rules.length ? ai.rules : (formRules.length ? formRules : ['ルールは主催に確認してください']);
+  const snsArr = Array.from(document.querySelectorAll('.pfSns:checked')).map(c => c.value);
+  const sns = snsArr.join(' ／ ') || 'なし';
+  const now = new Date();
+  const p = { cat: (ai && ai.title) || title, who: (window.__myName || 'guest_76'), date: now.getFullYear() + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + String(now.getDate()).padStart(2,'0'),
+    head: (ai && ai.head) || head, emoji: document.getElementById('pfEmoji').value, bg: BGS[POSTS.length % BGS.length], sns: sns,
+    nda: document.getElementById('pfNda').checked || !!(ai && ai.nda_suggested), adult: document.getElementById('pfAdult').checked, pr: snsArr.length ? snsArr.join(' ／ ') : null,
+    rules: rules, desc: (ai && ai.desc) || desc || '（詳細は主催に確認してください）' };
+  p.venue = (ai && ai.venue) || formVenue;
+  let status = '';
+  if (ai) {
+    status = 'AIが構造化しました（' + (ai.model || 'Gemini') + '）。';
+    if (ai.nda_suggested && !document.getElementById('pfNda').checked) status += '<br>内緒性の高い内容と判断したので、NDAありにしました。';
+    if (ai.warnings && ai.warnings.length) status += '<br><b style="color:#c0392b;">気になる要素があります：' + ai.warnings.join('、') + '</b>';
+  } else {
+    status = 'AIに繋がらなかったので、入力のまま投稿しました。';
+    if (s && s.warnings && s.warnings.length) status += '<br><b style="color:#c0392b;">気になる要素があります：' + s.warnings.join('、') + '</b>';
+  }
+  window.__lastStruct = status;
+  POSTS.push(p);
+  const card = buildCard(p, POSTS.length - 1);
+  feed.prepend(card);
+  postBox.classList.remove('open');
+  card.scrollIntoView({behavior:'smooth'});
+  if (snsArr.length) showPR(p, snsArr);
+  else { aiBody.innerHTML = status; qa.innerHTML = ''; dlArea.innerHTML = ''; sheet.classList.add('open'); scrim.classList.add('open'); }
+};
+
+</script>
+</body>
+</html>
